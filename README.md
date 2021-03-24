@@ -17,3 +17,7 @@ Download the latest .app release in the GitHub releases.
 ## Build from source
 
 Extract repo .zip and run `python3 setup.py py2app` in Terminal.
+
+## TODO
+
+Currently there is no nice way to change the clientid besides going into package contents, will probably add some tkinter interface to do that.
