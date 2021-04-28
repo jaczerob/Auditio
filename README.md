@@ -6,7 +6,7 @@ Simply click the icon in the statusbar to start or stop the RPC, or quit the app
 
 ## Showcase
 
-![Status Bar](https://i.imgur.com/nymeFxf.png)
+![Status Bar](https://cdn.discordapp.com/attachments/714229842052251703/837077546478469170/unknown.png)
 
 ![RPC example](https://i.imgur.com/ikqHKrp.png)
 
