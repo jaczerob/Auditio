@@ -2,7 +2,7 @@ from setuptools import setup
 
 APP = ['AppleMusicRPC.py']
 DATA_FILES = [('Resources', ['./Resources/config.ini', './Resources/getTrack.scpt', './Resources/icon.png'])]
-PACKAGES = ['app', 'music', 'rpc']
+PACKAGES = ['app', 'music', 'rpc', 'eh']
 OPTIONS = {
     'includes': ['pypresence', 'rumps'],
     'iconfile': './Resources/AppIcon.icns'
