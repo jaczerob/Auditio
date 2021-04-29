@@ -1,9 +1,9 @@
 import sys
 
-import logger
-
 import rumps
 from pypresence.exceptions import InvalidID
+
+import logger
 
 
 def exception_handler(exc_type, exc_value, exc_traceback):
@@ -18,7 +18,7 @@ def exception_handler(exc_type, exc_value, exc_traceback):
                   'config.ini '
 
     rumps.alert(title=exc_type.__name__, message=message, icon_path='./Resources/icon.png')
-    logger.exception(message=str(exc_value), exc_info=(exc_type, exc_value, exc_traceback, ))
+    logger.exception(message=str(exc_value), exc_info=(exc_type, exc_value, exc_traceback,))
     return
 
 

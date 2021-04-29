@@ -1,9 +1,9 @@
 import sys
 
+import rumps
+
 import rpc
 from exception_handler import exception_handler
-
-import rumps
 
 
 def update(_):
@@ -18,6 +18,8 @@ def start():
         rpc.connect()
         update_timer.start()
     except:
+        # Gotta figure out a better way to handle exceptions here because changing the sys.excepthook isn't working
+        # for rumps
         exception_handler(*sys.exc_info())
 
 
@@ -26,6 +28,8 @@ def stop():
         rpc.stop()
         update_timer.stop()
     except:
+        # Gotta figure out a better way to handle exceptions here because changing the sys.excepthook isn't working
+        # for rumps
         exception_handler(*sys.exc_info())
 
 

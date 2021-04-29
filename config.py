@@ -1,6 +1,5 @@
 import configparser
 
-
 _CONFIG = configparser.ConfigParser()
 _CONFIG.read('./Resources/config.ini')
 

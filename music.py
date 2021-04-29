@@ -2,7 +2,6 @@ import re
 import subprocess
 from typing import Optional
 
-
 _TRACK_REGEX = r'trackName:(.+), trackArtist:(.+), trackPosition:([0-9]+), trackDuration:([0-9]+)'
 _TRACK_SCRIPT_ARGS = ['osascript', './Resources/getTrack.scpt']
 _TRACK_KEYS = ['trackName', 'trackArtist', 'trackPosition', 'trackDuration']
