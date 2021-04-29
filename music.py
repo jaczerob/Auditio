@@ -8,23 +8,26 @@ _TRACK_KEYS = ['trackName', 'trackArtist', 'trackPosition', 'trackDuration']
 
 
 class Track:
+    # Ignore that the args are camelcase, it's how the script I made to get the data from the track
+    # returns the data and it's just easier to do this with dict unpacking, see _TRACK_REGEX or
+    # ./Resources/getTrack.scpt
     def __init__(self, trackName, trackArtist, trackPosition, trackDuration):
-        self.trackName = trackName
-        self.trackArtist = trackArtist
+        self._track_name = trackName
+        self._track_artist = trackArtist
 
-        self.trackPosition = int(trackPosition)
-        self.trackDuration = int(trackDuration)
+        self._track_position = int(trackPosition)
+        self._track_duration = int(trackDuration)
 
     @property
     def state(self) -> str:
-        position_minutes, position_seconds = divmod(self.trackPosition, 60)
-        duration_minutes, duration_seconds = divmod(self.trackDuration, 60)
-        state = '%02d:%02d/%02d:%02d' % (position_minutes, position_seconds, duration_minutes, duration_seconds)
+        position_minutes, position_seconds = divmod(self._track_position, 60)
+        duration_minutes, duration_seconds = divmod(self._track_duration, 60)
+        state = f'{position_minutes}:{position_seconds}/{duration_minutes}:{duration_seconds}'
         return state
 
     @property
     def details(self) -> str:
-        return f'{self.trackArtist} - {self.trackName}'
+        return f'{self._track_artist} - {self._track_name}'
 
 
 def get_current_track() -> Optional[Track]:
