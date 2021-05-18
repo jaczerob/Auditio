@@ -2,23 +2,22 @@ from typing import Optional
 
 from pypresence import Presence
 
-import config
-import logger
-import music
+from rpc import config
+from rpc import logger
+from rpc import music
 
 _CONNECTED = False
 _RPC: Optional[Presence] = None
 
 
 def update():
-    if not is_connected():
+    if not _CONNECTED:
         return
 
     track = music.get_current_track()
 
     if track:
-        logger.info(
-            f'Got Track(name={track.trackName}, artist={track.trackArtist}, position={track.trackPosition}, duration={track.trackDuration})')
+        logger.info(f'Got {track}')
         _RPC.update(state=track.state, details=track.details, large_image='icon', large_text=track.details)
         logger.info(
             f'Updated RPC(state={track.state}, details={track.details}, large_image=icon, large_text={track.details})')
@@ -32,11 +31,11 @@ def is_connected():
 
 
 def connect():
-    if is_connected():
-        return
-
     global _RPC
     global _CONNECTED
+
+    if _CONNECTED:
+        return
 
     client_id = config.get('RPC', 'clientid', fallback=None)
 
@@ -50,10 +49,10 @@ def connect():
 
 
 def stop():
-    if not is_connected():
-        return
-
     global _CONNECTED
+
+    if not _CONNECTED:
+        return
 
     _RPC.clear()
     _RPC.close()

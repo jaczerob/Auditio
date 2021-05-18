@@ -1,16 +1,22 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
-APP = ['AppleMusicRPC.py']
-DATA_FILES = [('Resources', ['./Resources/config.ini', './Resources/getTrack.scpt', './Resources/icon.png'])]
-PACKAGES = ['app', 'music', 'rpc', 'eh']
+APP = ['main.py']
+DATA_FILES = []
 OPTIONS = {
-    'includes': ['pypresence', 'rumps'],
-    'iconfile': './Resources/AppIcon.icns'
+    'argv_emulation': True,
+    'iconfile': 'AppIcon.icns',
+    'plist': {
+        'LSUIElement': True,
+    },
+    'packages': ['pypresence', 'rumps'],
+    'resources': ['config.ini', 'getTrack.scpt', 'AppIcon.icns']
 }
 
 setup(
     app=APP,
     data_files=DATA_FILES,
+    name='Apple Music RPC',
     options={'py2app': OPTIONS},
+    packages=find_packages(),
     setup_requires=['py2app'],
 )

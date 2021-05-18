@@ -5,7 +5,7 @@ _LOGGER = logging.getLogger()
 
 _LOGGER.setLevel(logging.DEBUG)
 
-_FILE_HANDLER = logging.FileHandler('./Resources/amrpc.log')
+_FILE_HANDLER = logging.FileHandler('amrpc.log')
 _FILE_HANDLER.setFormatter(_FORMATTER)
 _LOGGER.addHandler(_FILE_HANDLER)
 
