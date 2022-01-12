@@ -71,7 +71,8 @@ async def on_update_presence(track: Track):
         state=track.name,
         start=track.start,
         end=track.end,
-        large_image=config['client']['large_image']
+        large_image=config['client']['large_image'],
+        buttons=[{'label': 'Source', 'url': 'https://github.com/thewallacems/apple-music-rpc'}]
     )
 
     logger.debug(f'Updated presence: {track}')
