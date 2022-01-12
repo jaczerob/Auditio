@@ -1,3 +1,4 @@
+import asyncio
 import re
 import subprocess
 from time import time
@@ -26,14 +27,18 @@ class Track:
         return self.__repr__()
 
 
-def get_current_track() -> Optional[Track]:
-    result = subprocess.run(args, capture_output=True)
-    if not result.stdout:
-        return None
+async def get_current_track(executor=None) -> Optional[Track]:
+    def inner_func():
+        result = subprocess.run(args, capture_output=True)
+        if not result.stdout:
+            return None
 
-    data = result.stdout.decode().strip()
-    if not (match := regex.match(data)):
-        return None
+        data = result.stdout.decode().strip()
+        if not (match := regex.match(data)):
+            return None
 
-    track = {key: value for key, value in zip(keys, match.groups())}
-    return Track(**track)
+        track = {key: value for key, value in zip(keys, match.groups())}
+        return Track(**track)
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(executor, inner_func)
+    

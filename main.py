@@ -58,7 +58,7 @@ async def process_is_running(name: str) -> bool:
 
 
 async def poll_for_song():
-    if track := get_current_track():
+    if track := await get_current_track(executor=executor):
         ee.emit('update_presence', track)
     else:
         ee.emit('clear_presence', 'No track found')
