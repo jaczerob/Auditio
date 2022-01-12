@@ -1,0 +1,7 @@
+client:
+  id: "824006217985818644"
+  large_image: icon
+music:
+  regex: trackName:(.+), trackArtist:(.+), trackPosition:([0-9]+), trackDuration:([0-9]+)
+  interval: 5 # seconds
+  
