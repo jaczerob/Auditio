@@ -1,5 +1,5 @@
 import asyncio
-import logging
+import logging, logging.config
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,23 +11,25 @@ from config import config
 from music import Track, get_current_track
 
 
+class RPC(AioPresence):
+    def close(self):
+        self.send_data(2, {'v': 1, 'client_id': self.client_id})
+        self.sock_writer.close()
+
+        for task in asyncio.all_tasks(self.loop):
+            try:
+                task.cancel()
+            except:
+                pass
+
+
 executor = ThreadPoolExecutor(max_workers=3)
 
-rpc = AioPresence(config['client']['id'])
+rpc = RPC(config['client']['id'])
 ee = AsyncIOEventEmitter()
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
-
-file_handler = logging.FileHandler('amrpc.log')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+logging.config.fileConfig('logging.ini', disable_existing_loggers=True)
+logger = logging.getLogger('amrpc')
 
 
 async def mainloop():
@@ -72,28 +74,34 @@ async def on_update_presence(track: Track):
         start=track.start,
         end=track.end,
         large_image=config['client']['large_image'],
-        buttons=[{'label': 'Source', 'url': 'https://github.com/thewallacems/apple-music-rpc'}]
+        buttons=[{'label': 'Source', 'url': 'https://github.com/thewallacems/apple-music-rpc'}],
     )
 
     logger.debug(f'Updated presence: {track}')
 
 
 @ee.on('clear_presence')
-async def on_no_track_found(reason: str):
+async def on_clear_presence(reason: str):
     await rpc.clear()
     logger.debug(reason)
 
 
 @ee.on('error')
 async def on_error(message):
+    global rpc
+
     logger.exception(message)
+
     rpc.close()
-    sys.exit(1)
+    rpc = RPC(config['client']['id'])
+    
+    await main()
 
 
 async def main():
     await rpc.connect()
     logger.info('Connected to Discord')
+
     await mainloop()
 
 
