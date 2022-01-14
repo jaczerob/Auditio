@@ -88,15 +88,9 @@ async def on_clear_presence(reason: str):
 
 @ee.on('error')
 async def on_error(message):
-    global rpc
-
     logger.exception(message)
-
-    rpc.close()
-    rpc = RPC(config['client']['id'])
+    sys.exit(1)
     
-    await main()
-
 
 async def main():
     await rpc.connect()
