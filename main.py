@@ -1,31 +1,23 @@
 import asyncio
 import logging, logging.config
+import os
+import struct
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import psutil
 from pyee import AsyncIOEventEmitter
 from pypresence import AioPresence
+from pypresence.exceptions import InvalidID
 
 from config import config
 from music import Track, get_current_track
 
 
-class RPC(AioPresence):
-    def close(self):
-        self.send_data(2, {'v': 1, 'client_id': self.client_id})
-        self.sock_writer.close()
-
-        for task in asyncio.all_tasks(self.loop):
-            try:
-                task.cancel()
-            except:
-                pass
-
-
 executor = ThreadPoolExecutor(max_workers=3)
 
-rpc = RPC(config['client']['id'])
+rpc = AioPresence(config['client']['id'])
 ee = AsyncIOEventEmitter()
 
 logging.config.fileConfig('logging.ini', disable_existing_loggers=True)
@@ -59,6 +51,19 @@ async def process_is_running(name: str) -> bool:
     return await loop.run_in_executor(executor, inner_func)
 
 
+async def restart_process():
+    args = [sys.executable] + sys.argv
+    subprocess.Popen(args)
+    await asyncio.sleep(5)
+    sys.exit('Restarting process')
+
+
+async def wait_for_process(name: str) -> None:
+    while not await process_is_running(name):
+        logger.debug(f'Waiting for {name}...')
+        await asyncio.sleep(5)
+
+
 async def poll_for_song():
     if track := await get_current_track(executor=executor):
         ee.emit('update_presence', track)
@@ -87,9 +92,17 @@ async def on_clear_presence(reason: str):
 
 
 @ee.on('error')
-async def on_error(message):
-    logger.exception(message)
-    sys.exit(1)
+async def on_error(error):
+    if isinstance(error, (SystemExit, struct.error, )):
+        return
+
+    logger.exception(error)
+
+    if isinstance(error, (InvalidID, ConnectionRefusedError, )):
+        await restart_process()
+    else:
+        logging.fatal(f'Exiting out with exception: {error}')
+        sys.exit(1)
     
 
 async def main():
@@ -101,6 +114,10 @@ async def main():
 
 if __name__ == '__main__':
     try:
+        asyncio.run(main())
+    except ConnectionRefusedError:
+        # discord isn't open
+        asyncio.run(wait_for_process('discord'))
         asyncio.run(main())
     except KeyboardInterrupt:
         sys.exit(0)
