@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from fileinput import filename
 from time import time
 import asyncio
 import os, os.path
@@ -11,6 +12,7 @@ import yaml
 
 from config import config
 
+PUBLIC_ID_REGEX = re.compile(r'[?&#\\%<>+]+')
 
 TRACK_REGEX = re.compile(config['music']['regex'])
 TRACK_KEYS = ['trackName', 'trackArtist', 'trackPosition', 'trackDuration', 'trackAlbum']
@@ -20,6 +22,19 @@ if USE_ALBUM_COVER:
     with open('config/cloudinary.yaml', 'r') as file:
         cloudinary_config = yaml.load(file, Loader=yaml.FullLoader)
         cloudinary.config(**cloudinary_config)
+
+
+def filename_from_album(album: str) -> str:
+    filename = str(sanitize_filename(album)) + '.jpg'
+    filename = filename.replace(' ', '_')
+    return filename
+
+
+def public_id_from_album(album: str) -> str:
+    public_id = str(sanitize_filename(album))
+    public_id = public_id.replace(' ', '_')
+    public_id = PUBLIC_ID_REGEX.sub('', public_id)
+    return public_id
 
 
 class Track:
@@ -43,7 +58,7 @@ class Track:
             return
 
         def inner_func():
-            public_id = (str(sanitize_filename(self.album))).replace(' ', '_')
+            public_id = public_id_from_album(self.album)
             cloudinary.uploader.destroy(public_id)
 
         loop = asyncio.get_event_loop()
@@ -94,12 +109,12 @@ class Track:
             if not os.path.exists('tmp.jpg'):
                 return None
 
-            filename = (str(sanitize_filename(self.album)) + '.jpg').replace(' ', '_')
+            filename = filename_from_album(self.album)
             os.rename('tmp.jpg', filename)
 
             resp = cloudinary.uploader.upload(
                 filename,
-                public_id=filename[:-4],
+                public_id=public_id_from_album(self.album),
                 use_filename=True,
                 unique_filename=False,
             )
