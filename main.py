@@ -49,11 +49,12 @@ async def poll_for_song():
 @ee.on('update_presence')
 async def on_update_presence(track: Track):
     await rpc.update(
-        details=track.artist,
-        state=track.name,
+        details=f'Playing {track.name}',
+        state=f'by {track.artist}',
         start=track.start,
         end=track.end,
         large_image=track.album_cover,
+        large_text=track.album if len(track.album) > 2 else None,
         buttons=[{'label': 'Source', 'url': 'https://github.com/thewallacems/apple-music-rpc'}],
     )
 

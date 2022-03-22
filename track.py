@@ -1,18 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor
-from fileinput import filename
 from time import time
 import asyncio
 import os, os.path
 import re
 import subprocess
 
-from pathvalidate import sanitize_filename
 import cloudinary, cloudinary.uploader
 import yaml
 
 from config import config
-
-PUBLIC_ID_REGEX = re.compile(r'[?&#\\%<>+]+')
 
 TRACK_REGEX = re.compile(config['music']['regex'])
 TRACK_KEYS = ['trackName', 'trackArtist', 'trackPosition', 'trackDuration', 'trackAlbum']
@@ -22,19 +18,6 @@ if USE_ALBUM_COVER:
     with open('config/cloudinary.yaml', 'r') as file:
         cloudinary_config = yaml.load(file, Loader=yaml.FullLoader)
         cloudinary.config(**cloudinary_config)
-
-
-def filename_from_album(album: str) -> str:
-    filename = str(sanitize_filename(album)) + '.jpg'
-    filename = filename.replace(' ', '_')
-    return filename
-
-
-def public_id_from_album(album: str) -> str:
-    public_id = str(sanitize_filename(album))
-    public_id = public_id.replace(' ', '_')
-    public_id = PUBLIC_ID_REGEX.sub('', public_id)
-    return public_id
 
 
 class Track:
@@ -58,8 +41,7 @@ class Track:
             return
 
         def inner_func():
-            public_id = public_id_from_album(self.album)
-            cloudinary.uploader.destroy(public_id)
+            cloudinary.uploader.destroy('albumcover')
 
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(self.executor, inner_func)
@@ -93,6 +75,9 @@ class Track:
             self.name = track['trackName']
             self.artist = track['trackArtist']
             self.album = track['trackAlbum']
+            if len(self.album) < 2:
+                self.album += " Album"
+
             self.start = start = time() - int(track['trackPosition'])
             self.end = start + int(track['trackDuration'])
         
@@ -101,25 +86,17 @@ class Track:
             return config['client']['large_image']
 
         def inner_func():
-            subprocess.run(
-                ['osascript', 'scripts/getArt.scpt'], 
-                capture_output=True
-            )
-
-            if not os.path.exists('tmp.jpg'):
+            if not os.path.exists('albumcover.jpg'):
                 return None
 
-            filename = filename_from_album(self.album)
-            os.rename('tmp.jpg', filename)
-
             resp = cloudinary.uploader.upload(
-                filename,
-                public_id=public_id_from_album(self.album),
+                'albumcover.jpg',
+                public_id='albumcover',
                 use_filename=True,
                 unique_filename=False,
             )
 
-            os.remove(filename)
+            os.remove('albumcover.jpg')
             return str(resp['secure_url'])
 
         loop = asyncio.get_event_loop()
