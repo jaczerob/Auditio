@@ -1,8 +1,6 @@
 client:
   id: "824006217985818644"
-  large_image: icon
+  default_image: icon
 music:
-  regex: trackName:(.+), trackArtist:(.+), trackPosition:([0-9]+), trackDuration:([0-9]+), trackAlbum:(.+)
   interval: 10 # seconds
-  album_cover: true
   

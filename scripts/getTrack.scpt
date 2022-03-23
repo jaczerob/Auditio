@@ -12,10 +12,10 @@ tell application "Music"
 end tell
 
 tell application "Finder"
-	set current_path to container of (((path to me as text) & "::") as alias) as string
+	set currentPath to container of (((path to me as text) & "::") as alias) as string
 end tell
 
-set newPath to ((current_path as text) & "albumcover.jpg") as text
+set newPath to ((currentPath as text) & "share:albumcover.jpg") as text
 tell me to set fileRef to (open for access newPath with write permission)
 write tRawData to fileRef starting at 0
 tell me to close access fileRef

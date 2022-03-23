@@ -2,7 +2,5 @@
 /.venv/
 .DS_Store
 __pycache__/
-*.log
-cloudinary.yaml
-*.jpg
 share/
+ngrok.yaml
