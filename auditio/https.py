@@ -28,14 +28,14 @@ class Handler(SimpleHTTPRequestHandler):
         with open(f'share{self.path}', 'rb') as file:
             self.copyfile(file, self.wfile)
 
-        logger.trace(f'{self.client_address[0]}:{self.client_address[1]} - "GET {self.path} HTTP/{self.protocol_version}" 200')
+        logger.trace(f'{self.client_address[0]}:{self.client_address[1]} - "GET {self.path} {self.protocol_version}" 200')
 
     def log_message(self, format: str, *args) -> None:
         return
 
 
 client = HTTPServer(('', 8000), Handler)
-http_thread = threading.Thread(target=client.serve_forever)
+http_thread = threading.Thread(target=client.serve_forever, args=(2, ))
 http_thread.start()
 
 
