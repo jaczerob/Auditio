@@ -46,12 +46,12 @@ if __name__ == '__main__':
     parser.add_argument('-v', action='store_true')
     args = parser.parse_args()
 
-    logger.add(sys.stderr, level='ERROR', format='<black>[{time}] [{module}.{function}.{line}]</> <red>{level} - {exception}</> {message}')
+    logger.add(sys.stderr, level='ERROR', format='<white>[{time}] [{module}.{function}.{line}]</> <red>{level} - {exception}</> {message}')
 
     if args.v:
-        logger.add(sys.stdout, level='TRACE', format='<black>[{time}] [{module}]</> <blue>{level}</> {message}')
+        logger.add(sys.stdout, level='TRACE', format='<white>[{time}] [{module}]</> <blue>{level}</> {message}')
     else:
-        logger.add(sys.stdout, level='INFO', format='<black>[{time}]</> <green>{level}</> {message}')
+        logger.add(sys.stdout, level='INFO', format='<white>[{time}]</> <green>{level}</> {message}')
 
     try:
         main()
