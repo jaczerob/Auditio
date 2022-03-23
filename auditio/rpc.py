@@ -27,7 +27,7 @@ def update(track: Optional[Track]):
         end=track.end,
         large_image=track.album_cover,
         large_text=track.album,
-        buttons=[{'label': 'Source', 'url': 'https://github.com/thewallacems/apple-music-rpc'}],
+        buttons=[{'label': 'Source', 'url': 'https://github.com/jaczerob/Auditio'}],
     )
 
     logger.trace(f'updated presence: {track}')
