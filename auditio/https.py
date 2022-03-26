@@ -34,39 +34,45 @@ class Handler(SimpleHTTPRequestHandler):
         return
 
 
-client = HTTPServer(('', 8000), Handler)
-http_thread = threading.Thread(target=client.serve_forever, args=(2, ))
-http_thread.start()
+class AlbumCoverServer:
+    def __init__(self) -> None:
+        self.__http_server = HTTPServer(('', 8000), Handler)
+        self.__http_tunnel: ngrok.NgrokTunnel = None
+        self.__pyngrok_config: conf.PyngrokConfig = None
 
+    def start(self) -> None:
+        http_server_thread = threading.Thread(target=self.__http_server.serve_forever, args=(2, ))
+        http_server_thread.start()
+        logger.trace('http server connected on {}:{}', self.__http_server.server_address[0], self.__http_server.server_port)
 
-with open(ngrok_config_path, 'r') as file:
-    pyngrok_config = conf.PyngrokConfig(**yaml.load(file, yaml.FullLoader))
+        with open(ngrok_config_path, 'r') as file:
+            self.__pyngrok_config = pyngrok_config = conf.PyngrokConfig(**yaml.load(file, yaml.FullLoader))
 
+        share_path = Path('./share/').absolute()
+        if not share_path.exists():
+            logger.trace('creating share folder')
+            share_path.mkdir()
 
-share_path = Path('./share/').absolute()
-if not share_path.exists():
-    logger.trace('creating share folder')
-    share_path.mkdir()
+        self.__http_tunnel: ngrok.NgrokTunnel = ngrok.connect(8000, pyngrok_config=pyngrok_config)
+        logger.trace('ngrok http tunnel connected to {}', self.__http_tunnel.public_url)
 
+    def shutdown(self) -> None:
+        self.__http_server.shutdown()
+        logger.trace('http server disconnected')
 
-http_tunnel: ngrok.NgrokTunnel = ngrok.connect(8000, pyngrok_config=pyngrok_config)
-logger.trace('ngrok http tunnel connected')
+        ngrok.disconnect(self.__http_tunnel.public_url, pyngrok_config=self.__pyngrok_config)
+        logger.trace('ngrok http tunnel disconnected')
 
+    def get_album_cover_url(self, album: str):
+        filename = quote_plus(album) + '.jpg'
+        os.rename('./share/albumcover.jpg', f'./share/{filename}')
 
-def replace_old_album_cover(album: str):
-    filename = quote_plus(album) + '.jpg'
-    os.rename('./share/albumcover.jpg', f'./share/{filename}')
+        files = glob.glob('./share/*.jpg')
+        for file in files:
+            if not file.endswith(filename):
+                os.remove(file)
+                logger.trace('removing {}', file)
+                break
 
-    files = glob.glob('./share/*.jpg')
-    for file in files:
-       if not file.endswith(filename):
-            os.remove(file)
-            break
-    
-    return filename
-
-
-def get_album_cover_url(album: str):
-    filename = replace_old_album_cover(album)
-    url = urljoin(http_tunnel.public_url, filename)
-    return url
+        url = urljoin(self.__http_tunnel.public_url, filename)
+        return url

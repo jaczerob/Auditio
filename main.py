@@ -13,43 +13,46 @@ from pypresence.exceptions import InvalidID
 from loguru import logger
 
 from auditio.player import Player
-from auditio.track import Track
+
+
+player = Player(use_ngrok=USE_NGROK)
 
 
 def main():
     try:
-        player = Player()
         player.connect()
     except (InvalidID, ConnectionRefusedError, BrokenPipeError, ):
-        logger.error('couldn\'t connect to discord, attempting re-connect in 5 seconds...')
+        logger.opt(exception=True).error('couldn\'t connect to discord, attempting re-connect in 5 seconds...')
+
         time.sleep(5)
         main()
         return
+    else:
+        logger.info('connected to discord')
 
     while True:
         try:
-            track = Track(use_ngrok=USE_NGROK)
-            if track.name == None:
-                player.clear()
-                logger.trace('no track found, clearing rpc')
+            player.update()
+            if player.current_track is not None and player.current_track.exists:
+                logger.trace(f'updating track={player.current_track}')
             else:
-                player.update(track)
-                logger.trace(f'updating track={track}')
+                logger.trace('no track found, rpc cleared')
                 
-        except (SystemExit, struct.error, ):
+        except struct.error:
+            # ignore
+            time.sleep(10)
             continue
 
         except (InvalidID, ConnectionRefusedError, BrokenPipeError, ):
-            logger.error('lost connection to discord, attempting re-connect in 5 seconds...')
+            logger.opt(exception=True).error('lost connection to discord, attempting re-connect in 5 seconds...')
             time.sleep(5)
             main()
             return
 
         except Exception:
-            logger.critical('unhandled exception occurred, shutting down')
+            logger.opt(exception=True).critical('unhandled exception occurred, shutting down')
             sys.exit(1)
         
-
         time.sleep(10)
 
 
@@ -57,18 +60,18 @@ def formatter(record) -> str:
     match record['level'].name:
         case 'ERROR':
             if record['exception']:
-                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level}]</> {message}\n{exception}\n'
+                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level: <8}]</> {message}\n{exception}\n'
             else:
-                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level}]</> {message}\n'
+                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level: <8}]</> {message}\n'
         case 'CRITICAL':
             if record['exception']:
-                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level}]</> {message}\n{exception}\n'
+                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level: <8}]</> {message}\n{exception}\n'
             else:
-                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level}]</> {message}\n'
+                return '<white>[{time}]</> <red>[{module}.{function}.{line} - {level: <8}]</> {message}\n'
         case 'TRACE':
-            return '<white>[{time}] [{module}]</> <blue>{level}</> {message}\n'
+            return '<white>[{time}] [{module: <5}]</> <blue>{level: <8}</> {message}\n'
         case _:
-            return '<white>[{time}]</> <green>{level}</> {message}\n'
+            return '<white>[{time}]</> <green>{level: <8}</> {message}\n'
 
 
 if __name__ == '__main__':
@@ -86,4 +89,6 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        logger.info('shutting down, please wait up to 2 seconds...')
+        player.disconnect()
         sys.exit(0)

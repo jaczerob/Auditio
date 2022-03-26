@@ -2,18 +2,12 @@ from time import time
 import re
 import subprocess
 
-from auditio.config import app_config
-from auditio.https import get_album_cover_url
-
 TRACK_REGEX = re.compile(r'trackName:(.+), trackArtist:(.+), trackPosition:([0-9]+), trackDuration:([0-9]+), trackAlbum:(.+)')
 TRACK_KEYS = ['trackName', 'trackArtist', 'trackPosition', 'trackDuration', 'trackAlbum']
 
 
-
-
-
 class Track:
-    def __init__(self, *, use_ngrok: bool) -> None:
+    def __init__(self) -> None:
         self.exists: bool = False
 
         self.name: str = None
@@ -22,8 +16,6 @@ class Track:
         self.start: int = None
         self.end: int = None
         self.parse()
-        
-        self.album_cover: str = get_album_cover_url(self.album) if use_ngrok else app_config['client']['default_image'] 
 
     def parse(self) -> None:
         track = None
